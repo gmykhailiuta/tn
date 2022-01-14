@@ -1,0 +1,34 @@
+- name: Start systemd-timesyncd
+  service:
+    name: systemd-timesyncd.service
+    enabled: yes
+    state: started
+  when: ansible_os_family == 'Debian'
+
+- name: Set timezone
+  timezone:
+    name: CET
+
+- name: Set NTP servers
+  ini_file:
+    dest: /etc/systemd/timesyncd.conf
+    section: Time
+    option: NTP
+    value: "{{ ntp_server }}"
+    backup: yes
+    no_extra_spaces: yes
+  when: ansible_os_family == 'Debian'
+
+- name: make sure chronyd is installed
+  dnf:
+   name: chrony
+   state: latest
+   update_cache: yes
+  when: ansible_os_family == 'RedHat'
+
+- name: Set NTP servers for Chronyd
+  lineinfile:
+    path: /etc/chrony.conf
+    regexp: '^pool'
+    line: "pool {{ ntp_server }} iburst"
+  when: ansible_os_family == 'RedHat'

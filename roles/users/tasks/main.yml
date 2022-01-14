@@ -1,0 +1,28 @@
+---
+- name: install sudo package
+  apt:
+    name: sudo
+  when: ansible_os_family == 'Debian'
+
+- name: install sudo package
+  yum:
+    name: sudo
+  when: ansible_os_family == 'RedHat'
+
+- name: sudo group
+  group:
+    name: "sudo"
+
+- name: create super user
+  user:
+    name: "{{ superuser }}"
+    groups: sudo
+    append: no
+
+- name: sudoers file
+  template:
+    src: sudoers.j2
+    dest: /etc/sudoers
+    owner: root
+    mode: '0440'
+
